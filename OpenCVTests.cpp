@@ -6,6 +6,65 @@
 using namespace cv;
 using namespace std;
 
+int detect_obj_by_color()
+{
+	VideoCapture cap(0); //capture the video from web cam
+
+	if (!cap.isOpened())  // if not success, exit program
+	{
+		cout << "Cannot open the web cam" << endl;
+		return -1;
+	}
+
+	namedWindow("Control", WINDOW_AUTOSIZE); //create a window called "Control"
+
+	int iLowH = 0; int iHighH = 179;
+	int iLowS = 0; int iHighS = 255;
+	int iLowV = 0; int iHighV = 255;
+
+	createTrackbar("LowH", "Control", &iLowH, 179); //Hue (0 - 179)
+	createTrackbar("HighH", "Control", &iHighH, 179);
+
+	createTrackbar("LowS", "Control", &iLowS, 255); //Saturation (0 - 255)
+	createTrackbar("HighS", "Control", &iHighS, 255);
+
+	createTrackbar("LowV", "Control", &iLowV, 255); //Value (0 - 255)
+	createTrackbar("HighV", "Control", &iHighV, 255);
+
+	while (true)
+	{
+		Mat imgOriginal;
+
+		bool bSuccess = cap.read(imgOriginal); // read a new frame from video
+
+		if (!bSuccess) //if not success, break loop
+		{
+			cout << "Cannot read a frame from video stream" << endl;
+			break;
+		}
+
+		Mat imgHSV;
+
+		cvtColor(imgOriginal, imgHSV, COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
+
+		Mat imgThresholded;
+
+		inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
+
+		dilate(imgThresholded, imgThresholded, getStructuringElement(MORPH_RECT, Size(3, 3)));
+
+		imshow("Thresholded Image", imgThresholded); //show the thresholded image
+		imshow("Original", imgOriginal); //show the original image
+
+		if (waitKey(30) == 27) //wait for 'esc' key press for 30ms. If 'esc' key is pressed, break loop
+		{
+			cout << "esc key is pressed by user" << endl;
+			break;
+		}
+	}
+	return 0;
+}
+
 void exampleGetStructuringElement()
 {
 	Mat image = imread("checkers_before_filter.jpg", IMREAD_GRAYSCALE);
@@ -21,7 +80,7 @@ void exampleGetStructuringElement()
 	imshow("Eroded Image", eroded);
 	imshow("Kernel", kernel);
 
-	waitKey(0); //waits until somthing is pressed
+	waitKey(0); //waits until something is pressed
 }
 
 void exampleOwnKernel()
@@ -76,7 +135,9 @@ int main()
 
 	//exampleOwnKernel();
 
-	exampleVerticalAndHorizontalLines();
+	//exampleVerticalAndHorizontalLines();
+
+	detect_obj_by_color();
 
 	return 0;
 }
